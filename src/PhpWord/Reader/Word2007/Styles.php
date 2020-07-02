@@ -18,6 +18,7 @@
 namespace PhpOffice\PhpWord\Reader\Word2007;
 
 use PhpOffice\Common\XMLReader;
+use PhpOffice\PhpWord\Element\Section;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\Style\Language;
 
@@ -68,6 +69,7 @@ class Styles extends AbstractPart
                 if (is_null($name)) {
                     $name = $xmlReader->getAttribute('w:styleId', $node);
                 }
+                $styleId = $xmlReader->getAttribute('w:styleId', $node);
                 $headingMatches = array();
                 preg_match('/Heading\s*(\d)/i', $name, $headingMatches);
                 // $default = ($xmlReader->getAttribute('w:default', $node) == 1);
@@ -96,6 +98,22 @@ class Styles extends AbstractPart
                     case 'table':
                         $tStyle = $this->readTableStyle($xmlReader, $node);
                         if (!empty($tStyle)) {
+                            // 设置css
+                            $section = new Section('');
+                            $topSize = array_key_exists('borderTopSize', $tStyle) ? $tStyle['borderTopSize']/4 : '0';
+                            $rightSize = array_key_exists('borderRightSize', $tStyle) ? $tStyle['borderRightSize']/4 : '0';
+                            $buttomSize = array_key_exists('borderBottomSize', $tStyle) ? $tStyle['borderBottomSize']/4 : '0';
+                            $leftSize = array_key_exists('borderLeftSize', $tStyle) ? $tStyle['borderLeftSize']/4 : '0';
+                            $css = '.'.'wordTable'.$styleId.' { margin-top: 5px;'.
+                            'border-top :'.$topSize .'px solid ;'.
+                            'border-bottom :'.$buttomSize .'px solid ;'.
+                            'border-left :'.$leftSize .'px solid ;'.
+                            'border-right :'.$rightSize .'px solid ;'.
+                                '}';
+                            if (array_key_exists('borderInsideVSize', $tStyle) && array_key_exists('borderInsideHSize', $tStyle)) {
+                                $css .= PHP_EOL.'.'.'wordTable'.$styleId.' td { border:1px solid black; }';
+                            }
+                            $section->setTableCss($css);
                             $phpWord->addTableStyle($name, $tStyle);
                         }
                         break;

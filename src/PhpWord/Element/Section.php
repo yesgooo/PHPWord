@@ -41,6 +41,9 @@ class Section extends AbstractContainer
      */
     private $headers = array();
 
+    private static $_Anchor = [];
+    private static $_TableCss = '';
+
     /**
      * Section footers, indexed from 1, not zero
      *
@@ -81,6 +84,36 @@ class Section extends AbstractContainer
         if (!is_null($style) && is_array($style)) {
             $this->style->setStyleByArray($style);
         }
+    }
+
+
+    public function setTableCss($tableCss = null)
+    {
+        if (!is_null($tableCss)) {
+            self::$_TableCss .= PHP_EOL. $tableCss;
+        }
+    }
+
+    public function getTableCss($tableCss = null)
+    {
+        return self::$_TableCss;
+    }
+
+
+    /**
+     * Set section Anchor
+     *
+     * @param array $anchor
+     */
+    public function setAnchor($anchor = null)
+    {
+        if (!is_null($anchor) && is_array($anchor)) {
+            self::$_Anchor[] = $anchor;
+        }
+    }
+    public function getAnchor()
+    {
+        return self::$_Anchor;
     }
 
     /**
@@ -143,18 +176,6 @@ class Section extends AbstractContainer
 
     /**
      * Get the footnote properties
-     *
-     * @return FootnoteProperties
-     */
-    public function getFootnoteProperties()
-    {
-        return $this->footnoteProperties;
-    }
-
-    /**
-     * Get the footnote properties
-     *
-     * @deprecated Use the `getFootnoteProperties` method instead
      *
      * @return FootnoteProperties
      */

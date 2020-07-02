@@ -79,6 +79,12 @@ class Paragraph extends AbstractStyle
             $css['margin-top'] = '0';
             $css['margin-bottom'] = '0';
         }
+        // 展示空格
+        $css['white-space'] = 'break-spaces';
+        // 文字前面空多少
+        $indent = $style->getIndent();
+        $css['text-indent'] = $indent/8000 . 'pt';
+        $css['position'] = 'relative';
 
         return $this->assembleCss($css);
     }

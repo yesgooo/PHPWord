@@ -99,13 +99,13 @@ class Head extends AbstractPart
                 'border-top' => '1px solid #CCC',
             ),
             'table' => array(
-                'border'         => '1px solid black',
+                'border-collapse' => 'collapse',
                 'border-spacing' => '0px',
                 'width '         => '100%',
             ),
-            'td' => array(
-                'border' => '1px solid black',
-            ),
+//            'td' => array(
+//                'border' => '1px solid black',
+//            ),
         );
         foreach ($defaultStyles as $selector => $style) {
             $styleWriter = new GenericStyleWriter($style);
