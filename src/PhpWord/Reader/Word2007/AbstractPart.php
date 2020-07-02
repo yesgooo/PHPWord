@@ -20,6 +20,7 @@ namespace PhpOffice\PhpWord\Reader\Word2007;
 use PhpOffice\Common\XMLReader;
 use PhpOffice\PhpWord\ComplexType\TblWidth as TblWidthComplexType;
 use PhpOffice\PhpWord\Element\AbstractContainer;
+use PhpOffice\PhpWord\Element\Section;
 use PhpOffice\PhpWord\Element\TextRun;
 use PhpOffice\PhpWord\Element\TrackChange;
 use PhpOffice\PhpWord\PhpWord;
@@ -111,6 +112,7 @@ abstract class AbstractPart
             $paragraphStyle = $this->readParagraphStyle($xmlReader, $domNode);
             $headingDepth = $this->getHeadingDepth($paragraphStyle);
         }
+
 
         // PreserveText
         if ($xmlReader->elementExists('w:r/w:instrText', $domNode)) {
@@ -273,7 +275,20 @@ abstract class AbstractPart
             $target = $this->getMediaTarget($docPart, $embedId);
             if (!is_null($target)) {
                 $imageSource = "zip://{$this->docFile}#{$target}";
-                $parent->addImage($imageSource, null, false, $name);
+                // 图片宽
+                $width = $xmlReader->getAttribute( 'cx', $node,'wp:inline/wp:extent');
+                $height = $xmlReader->getAttribute( 'cy', $node,'wp:inline/wp:extent');
+                $parent->addImage($imageSource, ['width'=>$width/3175,'height'=>$height/3175], false, $name);
+            }
+            // 如果是悬浮
+            if ($xmlReader->elementExists('wp:anchor', $node)) {
+                $anchor = $this->readAnchorNode($xmlReader, $node, $docPart);
+                $mime_type= mime_content_type($anchor['path']);
+                $base64_data = base64_encode(file_get_contents($anchor['path']));
+                $base64_file = 'data:'.$mime_type.';base64,'.$base64_data;
+                $content = '<span style="position: absolute;display:block; ;margin-left:'.$anchor['wOffset'].'px;margin-top:'.$anchor['hOffset'].'px"><img width="'.$anchor['width'].'" height="'.$anchor['height'].'" src="'.$base64_file.'"></span>';
+                $content .= '<span style="font-family:楷体;mso-bidi-font-family:宋体;color:rgb(0,0,0);font-size:9.0000pt;mso-font-kerning:0.0000pt;"><o:p>&nbsp;</o:p></span>';
+                $parent->addText($content);
             }
         } elseif ($node->nodeName == 'w:object') {
             // Object
@@ -291,7 +306,6 @@ abstract class AbstractPart
         } elseif ($node->nodeName == 'w:t' || $node->nodeName == 'w:delText') {
             // TextRun
             $textContent = htmlspecialchars($xmlReader->getValue('.', $node), ENT_QUOTES, 'UTF-8');
-
             if ($runParent->nodeName == 'w:hyperlink') {
                 $rId = $xmlReader->getAttribute('r:id', $runParent);
                 $target = $this->getMediaTarget($docPart, $rId);
@@ -359,6 +373,8 @@ abstract class AbstractPart
                         }
 
                         $cell = $row->addCell($cellWidth, $cellStyle);
+
+                        // 添加格子宽度
                         $cellNodes = $xmlReader->getElements('*', $rowNode);
                         foreach ($cellNodes as $cellNode) {
                             if ('w:p' == $cellNode->nodeName) { // Paragraph
@@ -369,6 +385,36 @@ abstract class AbstractPart
                 }
             }
         }
+    }
+
+    protected function readAnchorNode(XMLReader $xmlReader, \DOMElement $node, $docPart = 'document')
+    {
+        // 水平偏移
+        $wOffset = $xmlReader->getValue( 'wp:anchor/wp:positionH/wp:posOffset', $node);
+        // 垂直偏移
+        $hOffset = $xmlReader->getValue( 'wp:anchor/wp:positionV/wp:posOffset', $node);
+        // 图片宽
+        $width = $xmlReader->getAttribute( 'cx', $node,'wp:anchor/wp:extent');
+        $height = $xmlReader->getAttribute( 'cy', $node,'wp:anchor/wp:extent');
+        // 暂时只考虑图片漂浮 图片资源索引
+        $embedId = $xmlReader->getAttribute( 'r:embed', $node,'wp:anchor/a:graphic/a:graphicData/pic:pic/pic:blipFill/a:blip');
+        $target = $this->getMediaTarget($docPart, $embedId);
+
+        if (!is_null($target)) {
+            $imageSource = "zip://{$this->docFile}#{$target}";
+            // 添加入资源
+            $section = new Section('');
+            $source =
+                [
+                    'wOffset' => $wOffset/9525,
+                    'hOffset' => $hOffset/9525,
+                    'width' => $width/9525,
+                    'height' => $height/9525,
+                    'path'    => $imageSource
+                ];
+            return $source;
+        }
+        return [];
     }
 
     /**
@@ -390,7 +436,8 @@ abstract class AbstractPart
             'alignment'           => array(self::READ_VALUE, 'w:jc'),
             'basedOn'             => array(self::READ_VALUE, 'w:basedOn'),
             'next'                => array(self::READ_VALUE, 'w:next'),
-            'indent'              => array(self::READ_VALUE, 'w:ind', 'w:left'),
+            // 'indent'              => array(self::READ_VALUE, 'w:ind', 'w:left'),
+            'indent'         => array(self::READ_VALUE, 'w:ind', 'w:firstLineChars'),
             'hanging'             => array(self::READ_VALUE, 'w:ind', 'w:hanging'),
             'spaceAfter'          => array(self::READ_VALUE, 'w:spacing', 'w:after'),
             'spaceBefore'         => array(self::READ_VALUE, 'w:spacing', 'w:before'),
@@ -560,6 +607,15 @@ abstract class AbstractPart
             'gridSpan'      => array(self::READ_VALUE, 'w:gridSpan'),
             'vMerge'        => array(self::READ_VALUE, 'w:vMerge'),
             'bgColor'       => array(self::READ_VALUE, 'w:shd', 'w:fill'),
+            'width'       => array(self::READ_VALUE, 'w:tcW', 'w:w'),
+            'borderTopSize'       => array(self::READ_VALUE, 'w:tcBorders/w:top', 'w:sz'),
+            'borderBottomSize'       => array(self::READ_VALUE, 'w:tcBorders/w:bottom', 'w:sz'),
+            'borderLeftSize'       => array(self::READ_VALUE, 'w:tcBorders/w:left', 'w:sz'),
+            'borderRightSize'       => array(self::READ_VALUE, 'w:tcBorders/w:right', 'w:sz'),
+            'borderTopStyle'       => array(self::READ_VALUE, 'w:tcBorders/w:top', 'w:color'),
+            'borderBottomStyle'       => array(self::READ_VALUE, 'w:tcBorders/w:bottom', 'w:color'),
+            'borderLeftStyle'       => array(self::READ_VALUE, 'w:tcBorders/w:left', 'w:color'),
+            'borderRightStyle'       => array(self::READ_VALUE, 'w:tcBorders/w:right', 'w:color'),
         );
 
         return $this->readStyleDefs($xmlReader, $domNode, $styleDefs);

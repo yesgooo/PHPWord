@@ -37,17 +37,39 @@ class Body extends AbstractPart
         $phpWord = $this->getParentWriter()->getPhpWord();
 
         $content = '';
-
-        $content .= '<body>' . PHP_EOL;
         $sections = $phpWord->getSections();
+        $height = $sections[0]->getStyle()->getPageSizeH()/17;
+        $width = $sections[0]->getStyle()->getPageSizeW()/17;
+        // 上下边距
+        $topHeight = $sections[0]->getStyle()->getHeaderHeight()/17;
+        $bottomHeight = $sections[0]->getStyle()->getFooterHeight()/17;
+        // 获取表格css
+        $css = $sections[0]->getTableCss();
+        $content .= '<style>'.$css.'</style>';
+        $content .= '<body style="'.'width: '.$width.'px;height:'.$height.'px">' . PHP_EOL;
+        // 页眉
+        $content .= '<div style="position: relative;margin-top: 100px;width: ' . $width .'">'.PHP_EOL;
+        $header = $sections[0]->getHeaders();
+        foreach ($header as $section) {
+            $writer = new Container($this->getParentWriter(), $section);
+            $content .= $writer->write();
+        }
+        $content .= '</div>';
         foreach ($sections as $section) {
             $writer = new Container($this->getParentWriter(), $section);
             $content .= $writer->write();
         }
-
-        $content .= $this->writeNotes();
+        // 页脚
+        $content .= '<div style="position: relative;width: ' . $width . '">'.PHP_EOL;
+        $footer = $sections[0]->getFooters();
+        foreach ($footer as $section) {
+            $writer = new Container($this->getParentWriter(), $section);
+            $content .= $writer->write();
+        }
+        $content .= '</div>';
         $content .= '</body>' . PHP_EOL;
-
+        // 展示优化
+        echo '&nbsp;';
         return $content;
     }
 
