@@ -44,14 +44,22 @@ class Cell extends AbstractContainer
     private $style;
 
     /**
+     * Cell hasBorder
+     *
+     * @var \PhpOffice\PhpWord\Style\Cell
+     */
+    private $hasBorder;
+
+    /**
      * Create new instance
      *
      * @param int $width
      * @param array|\PhpOffice\PhpWord\Style\Cell $style
      */
-    public function __construct($width = null, $style = null)
+    public function __construct($width = null, $style = null, $hasBorder = false)
     {
         $this->width = $width;
+        $this->hasBorder = $hasBorder;
         $this->style = $this->setNewStyle(new CellStyle(), $style, true);
     }
 
@@ -63,6 +71,16 @@ class Cell extends AbstractContainer
     public function getStyle()
     {
         return $this->style;
+    }
+
+    /**
+     * Get cell style
+     *
+     * @return \PhpOffice\PhpWord\Style\Cell
+     */
+    public function getHasBorder()
+    {
+        return $this->hasBorder;
     }
 
     /**

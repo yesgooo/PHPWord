@@ -362,6 +362,8 @@ abstract class AbstractPart
                 $row = $table->addRow($rowHeight, $rowStyle);
                 $rowNodes = $xmlReader->getElements('*', $tblNode);
                 foreach ($rowNodes as $rowNode) {
+                    // 是否有边框
+                    $hasBorder = $xmlReader->elementExists('w:tcPr/w:tcBorders', $rowNode);
                     if ('w:trPr' == $rowNode->nodeName) { // Row style
                         // @todo Do something with row style
                     } elseif ('w:tc' == $rowNode->nodeName) { // Cell
@@ -371,8 +373,7 @@ abstract class AbstractPart
                         if (!is_null($cellStyleNode)) {
                             $cellStyle = $this->readCellStyle($xmlReader, $cellStyleNode);
                         }
-
-                        $cell = $row->addCell($cellWidth, $cellStyle);
+                        $cell = $row->addCell($cellWidth, $cellStyle, $hasBorder);
 
                         // 添加格子宽度
                         $cellNodes = $xmlReader->getElements('*', $rowNode);
