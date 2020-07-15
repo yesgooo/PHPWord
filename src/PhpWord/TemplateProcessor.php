@@ -127,6 +127,9 @@ class TemplateProcessor
         }
 
         $this->tempDocumentMainPart = $this->readPartWithRels($this->getMainPartName());
+//        print_r($this->tempDocumentMainPart);
+//        print_r($this->tempDocumentSettingsPart);
+//        print_r($this->tempDocumentContentTypes);die;
         $this->tempDocumentSettingsPart = $this->readPartWithRels($this->getSettingsPartName());
         $this->tempDocumentContentTypes = $this->zipClass->getFromName($this->getDocumentContentTypesName());
     }
@@ -306,6 +309,7 @@ class TemplateProcessor
      */
     public function setValue($search, $replace, $limit = self::MAXIMUM_REPLACEMENTS_DEFAULT)
     {
+
         if (is_array($search)) {
             foreach ($search as &$item) {
                 $item = static::ensureMacroCompleted($item);
@@ -324,9 +328,11 @@ class TemplateProcessor
             $replace = static::ensureUtf8Encoded($replace);
         }
 
+
         if (Settings::isOutputEscapingEnabled()) {
             $xmlEscaper = new Xml();
             $replace = $xmlEscaper->escape($replace);
+
         }
 
         $this->tempDocumentHeaders = $this->setValueForPart($search, $replace, $this->tempDocumentHeaders, $limit);
@@ -660,10 +666,14 @@ class TemplateProcessor
      */
     public function cloneRow($search, $numberOfClones)
     {
+
         $search = static::ensureMacroCompleted($search);
 
         $tagPos = strpos($this->tempDocumentMainPart, $search);
+
         if (!$tagPos) {
+            var_dump($search);
+
             throw new Exception('Can not clone row, template variable not found or variable contains markup.');
         }
 
@@ -719,6 +729,46 @@ class TemplateProcessor
                 $this->setValue($macro . '#' . $rowNumber, $replace);
             }
         }
+    }
+
+//    public function NewCloneRowAndSetValues($values)
+//    {
+//
+//        foreach ($values as $k => $v) {
+//            foreach ($v as $kk => $vv) {
+//                $this->cloneRow($kk, count($values));
+//            }
+//        }
+//
+//        foreach ($values as $rowKey => $rowData) {
+//            $rowNumber = $rowKey + 1;
+//            foreach ($rowData as $macro => $replace) {
+//                $this->setValue($macro . '#' . $rowNumber, $replace);
+//            }
+//        }
+//    }
+
+    /**
+     * 查找字符串
+     *
+     *
+     * @param $values
+     * @author: qjj
+     */
+    public function checkTemplateTags($data)
+    {
+        preg_match_all("#\\$"."{([^}]+)}#us", $this->tempDocumentMainPart, $matches);
+
+        $res = [];
+        if (!empty($matches) && !empty($data)) {
+            foreach ($matches[1] as $match) {
+                if (!in_array($match, $data)) {
+                    array_push($res, '${' . $match . '}');
+                }
+            }
+        }
+
+        return $res;
     }
 
     /**
@@ -916,10 +966,12 @@ class TemplateProcessor
      */
     protected function setValueForPart($search, $replace, $documentPartXML, $limit)
     {
+
         // Note: we can't use the same function for both cases here, because of performance considerations.
         if (self::MAXIMUM_REPLACEMENTS_DEFAULT === $limit) {
             return str_replace($search, $replace, $documentPartXML);
         }
+
         $regExpEscaper = new RegExp();
 
         return preg_replace($regExpEscaper->escape($search), $replace, $documentPartXML, $limit);
