@@ -66,9 +66,9 @@ class Row extends AbstractElement
      * @param mixed $style
      * @return \PhpOffice\PhpWord\Element\Cell
      */
-    public function addCell($width = null, $style = null)
+    public function addCell($width = null, $style = null, $hasBorder = false)
     {
-        $cell = new Cell($width, $style);
+        $cell = new Cell($width, $style, $hasBorder);
         $cell->setParentContainer($this);
         $this->cells[] = $cell;
 

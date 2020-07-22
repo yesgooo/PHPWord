@@ -101,11 +101,11 @@ class Head extends AbstractPart
             'table' => array(
                 'border-collapse' => 'collapse',
                 'border-spacing' => '0px',
-                'width '         => '100%',
+                // 'width '         => '100%',
             ),
-//            'td' => array(
-//                'border' => '1px solid black',
-//            ),
+            // 'td' => array(
+                // 'border' => '1px solid black',
+            // ),
         );
         foreach ($defaultStyles as $selector => $style) {
             $styleWriter = new GenericStyleWriter($style);

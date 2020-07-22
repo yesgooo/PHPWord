@@ -50,10 +50,8 @@ class Body extends AbstractPart
         // 页眉
         $content .= '<div style="position: relative;margin-top: 100px;width: ' . $width .'">'.PHP_EOL;
         $header = $sections[0]->getHeaders();
-        foreach ($header as $section) {
-            $writer = new Container($this->getParentWriter(), $section);
-            $content .= $writer->write();
-        }
+        $writer = new Container($this->getParentWriter(), reset($header));
+        $content .= $writer->write();
         $content .= '</div>';
         foreach ($sections as $section) {
             $writer = new Container($this->getParentWriter(), $section);
@@ -62,10 +60,8 @@ class Body extends AbstractPart
         // 页脚
         $content .= '<div style="position: relative;width: ' . $width . '">'.PHP_EOL;
         $footer = $sections[0]->getFooters();
-        foreach ($footer as $section) {
-            $writer = new Container($this->getParentWriter(), $section);
-            $content .= $writer->write();
-        }
+        $writer = new Container($this->getParentWriter(), reset($footer));
+        $content .= $writer->write();
         $content .= '</div>';
         $content .= '</body>' . PHP_EOL;
         // 展示优化

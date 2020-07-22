@@ -50,6 +50,7 @@ class Table extends AbstractElement
                 $rowCellCount = count($rowCells);
                 for ($j = 0; $j < $rowCellCount; $j++) {
                     $cellStyle = $rowCells[$j]->getStyle();
+                    $hasBorder = $rowCells[$j]->getHasBorder();
                     $cellWidth = $cellStyle->getWidth()/14;
                     $cellBgColor = $cellStyle->getBgColor();
                     $cellFgColor = null;
@@ -88,10 +89,10 @@ class Table extends AbstractElement
                         $cellBgColorAttr = ((is_null($cellBgColor) || $cellBgColor == 'auto') ? '' : " bgcolor=\"#{$cellBgColor}\"");
                         $cellFgColorAttr = ((is_null($cellFgColor) || $cellFgColor == 'auto') ? '' : " color=\"#{$cellFgColor}\"");
                         $cellBorderColorAttr = ' style="width:'.$cellWidth.'px;';
-                        !is_null($borderSizes[0]) && $cellBorderColorAttr .= 'border-top :'.($borderSizes[0]/4).'px solid '.((empty($borderColors[0]) || $borderColors[0] == 'auto') ? 'black' : '#'.$borderColors[0]);
-                        !is_null($borderSizes[1]) &&  $cellBorderColorAttr .= ';border-left :'.($borderSizes[1]/4).'px solid '.((empty($borderColors[1]) || $borderColors[1] == 'auto') ? 'black' : '#'.$borderColors[1]);
-                        !is_null($borderSizes[2]) && $cellBorderColorAttr .= ';border-right :'.($borderSizes[2]/4).'px solid '.((empty($borderColors[2]) || $borderColors[2] == 'auto') ? 'black' : '#'.$borderColors[2]);
-                        !is_null($borderSizes[3]) && $cellBorderColorAttr .= ';border-bottom :'.($borderSizes[3]/4).'px solid '.((empty($borderColors[3]) || $borderColors[3] == 'auto') ? 'black' : '#'.$borderColors[3]);
+                        $hasBorder && $cellBorderColorAttr .= 'border-top :'.($borderSizes[0]/4).'px solid '.((empty($borderColors[0]) || $borderColors[0] == 'auto') ? 'black' : '#'.$borderColors[0]);
+                        $hasBorder &&  $cellBorderColorAttr .= ';border-left :'.($borderSizes[1]/4).'px solid '.((empty($borderColors[1]) || $borderColors[1] == 'auto') ? 'black' : '#'.$borderColors[1]);
+                        $hasBorder && $cellBorderColorAttr .= ';border-right :'.($borderSizes[2]/4).'px solid '.((empty($borderColors[2]) || $borderColors[2] == 'auto') ? 'black' : '#'.$borderColors[2]);
+                        $hasBorder && $cellBorderColorAttr .= ';border-bottom :'.($borderSizes[3]/4).'px solid '.((empty($borderColors[3]) || $borderColors[3] == 'auto') ? 'black' : '#'.$borderColors[3]);
                         $cellBorderColorAttr .= '"';
                         $content .= "<{$cellTag}{$cellColSpanAttr}{$cellRowSpanAttr}{$cellBgColorAttr}{$cellFgColorAttr}{$cellBorderColorAttr}>" . PHP_EOL;
                         $writer = new Container($this->parentWriter, $rowCells[$j]);
