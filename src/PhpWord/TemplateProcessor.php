@@ -670,10 +670,8 @@ class TemplateProcessor
         $search = static::ensureMacroCompleted($search);
 
         $tagPos = strpos($this->tempDocumentMainPart, $search);
-
         if (!$tagPos) {
-            var_dump($search);
-
+            return false;
             throw new Exception('Can not clone row, template variable not found or variable contains markup.');
         }
 
@@ -721,6 +719,7 @@ class TemplateProcessor
      */
     public function cloneRowAndSetValues($search, $values)
     {
+
         $this->cloneRow($search, count($values));
 
         foreach ($values as $rowKey => $rowData) {
@@ -731,22 +730,22 @@ class TemplateProcessor
         }
     }
 
-//    public function NewCloneRowAndSetValues($values)
-//    {
-//
-//        foreach ($values as $k => $v) {
-//            foreach ($v as $kk => $vv) {
-//                $this->cloneRow($kk, count($values));
-//            }
-//        }
-//
-//        foreach ($values as $rowKey => $rowData) {
-//            $rowNumber = $rowKey + 1;
-//            foreach ($rowData as $macro => $replace) {
-//                $this->setValue($macro . '#' . $rowNumber, $replace);
-//            }
-//        }
-//    }
+    public function newCloneRowAndSetValues($values)
+    {
+        foreach ($values as $k => $v) {
+            foreach ($v as $kk => $vv) {
+                if (!$this->cloneRow($kk, count($values))){
+//                    var_dump($kk);
+                    continue;
+                }
+            }
+            $rowNumber = $k + 1;
+            foreach ($v as $macro => $replace) {
+                $this->setValue($macro . '#' . $rowNumber, $replace);
+            }
+        }
+
+    }
 
     /**
      * 查找字符串
